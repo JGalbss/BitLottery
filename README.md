@@ -1,4 +1,4 @@
-**# BitLottery**
+**BitLottery**
 
 Information Relating to BitLottery - The first NFT lottery!
 

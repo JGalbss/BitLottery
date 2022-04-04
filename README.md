@@ -1,2 +1,13 @@
-# BitLottery
-Information Relating to BitLottery
+**# BitLottery**
+
+Information Relating to BitLottery - The first NFT lottery!
+
+To learn more visit our website
+
+**The Contract**
+
+Uses Chainlink VRF to generate a secure random number.
+
+When the token supply is reached, the winning token is declared and the winner is paid.
+
+This contract **is not compatible with transfers**. Addresses are stored with the tokens they minted. 

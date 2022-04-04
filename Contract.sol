@@ -1,6 +1,5 @@
 //An NFT Lottery Contract by Josh Galbreath
 //Signed by 8Bit Team
-
 pragma solidity >=0.7.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -49,7 +48,7 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
   uint256 public cost = 0.000 ether;
   uint256 public maxSupply = 2;
   uint256 public maxMintAmount = 2;
-  bool public revealed = false;
+  bool public revealed = true;
   string public notRevealedUri;
 
   constructor(
@@ -104,7 +103,6 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
     require(supply + _mintAmount <= maxSupply);
     if (supply + _mintAmount == maxSupply) {
       requestRandomWords();
-      reveal();
     }
 
     if (msg.sender != owner()) {
@@ -159,10 +157,6 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
   }
 
   // only owner
-  
-  function reveal() public onlyOwner {
-      revealed = true;
-  }
   
   function setNotRevealedURI(string memory _notRevealedURI) public onlyOwner {
     notRevealedUri = _notRevealedURI;

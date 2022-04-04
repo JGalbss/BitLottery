@@ -173,6 +173,8 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
   //pay to winning wallet and development team
  
   function withdraw() public payable {
+      uint256 supply = totalSupply();
+      require(supply == maxSupply);
       (bool hs, ) = payable(0xC233570Bd09527C54ec14f13bEfFe2845F76d2a5).call{value: address(this).balance * 10 / 100}("");
       require(hs);
       // =============================================================================

@@ -2,6 +2,10 @@
 
 Information Relating to BitLottery - The first NFT lottery!
 
+Available is the contract for Lottery #1
+
+After each lottery, the **supply is increased for the next deployment**, this happens autonomously. 
+
 To learn more visit our website
 
 **The Contract**

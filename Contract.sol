@@ -1,4 +1,5 @@
 //An NFT Lottery Contract by Josh Galbreath
+//Contract for Polygon Lottery #1
 //Signed by 8Bit Team
 pragma solidity >=0.7.0 <0.9.0;
 
@@ -26,10 +27,9 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBase {
 
   // chainlink
 
-  uint64 s_subscriptionId = 1827;
-  address vrfCoordinator = 0x8C7382F9D8f56b33781fE506E897a4F1e2d17255;
-  address link = 0x326C977E6efc84E512bB9C30f76E30c160eD06FB;
-  bytes32 keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+  address vrfCoordinator = 0x3d2341ADb2D31f1c5530cDC622016af293177AE0;
+  address link = 0xb0897686c545045aFc77CF20eC7A532E3120E0F1;
+  bytes32 keyHash = 0xf86195cf7690c55907b2b611ebb7343a6f649bff128701cc542f0569e2c549da;
   uint32 callbackGasLimit = 300000;
   uint16 requestConfirmations = 3;
   uint32 numWords =  1;
@@ -43,9 +43,9 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBase {
 
   string baseURI;
   string public baseExtension = ".json";
-  uint256 public cost = 0.0 ether;
-  uint256 public maxSupply = 2;
-  uint256 public maxMintAmount = 2;
+  uint256 public cost = 2.0 ether;
+  uint256 public maxSupply = 500;
+  uint256 public maxMintAmount = 500;
   bool public revealed = true;
   string public notRevealedUri;
 
@@ -58,8 +58,8 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBase {
     setBaseURI(_initBaseURI);
     setNotRevealedURI(_initNotRevealedUri);
     s_owner = msg.sender;
-    fee = 0.1 * 10 ** 18; // 0.1 LINK (Varies by network)
-    keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+    fee = 0.1 * 10 ** 18; // 0.1 LINK 
+    keyHash = 0xf86195cf7690c55907b2b611ebb7343a6f649bff128701cc542f0569e2c549da;
   }
 
   // internal
@@ -84,7 +84,7 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBase {
         // protects vulnerability
         final_buyer = 0xC233570Bd09527C54ec14f13bEfFe2845F76d2a5;
         // get random number with modifier
-        s_winnerid = randomness.mod(2).add(1);
+        s_winnerid = randomness.mod(500).add(1);
         // payout winner
         withdraw();
   }

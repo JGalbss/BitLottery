@@ -5,11 +5,10 @@ pragma solidity >=0.7.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
+contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBase {
   
   using SafeMath for uint256;
   using Strings for uint256;
@@ -26,26 +25,25 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
   mapping(address => mapping(address => bool)) private _operatorApprovals;
 
   // chainlink
-  VRFCoordinatorV2Interface COORDINATOR;
-  LinkTokenInterface LINKTOKEN;
 
   uint64 s_subscriptionId = 1827;
-  address vrfCoordinator = 0x6168499c0cFfCaCD319c818142124B7A15E857ab;
-  address link = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709;
-  bytes32 keyHash = 0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc;
-  uint32 callbackGasLimit = 100000;
+  address vrfCoordinator = 0x8C7382F9D8f56b33781fE506E897a4F1e2d17255;
+  address link = 0x326C977E6efc84E512bB9C30f76E30c160eD06FB;
+  bytes32 keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+  uint32 callbackGasLimit = 300000;
   uint16 requestConfirmations = 3;
   uint32 numWords =  1;
-  uint256 public s_winnerid;
+  uint256 public s_winnerid = 0;
   uint256 public s_requestId;
   address s_owner;
   uint256 internal fee;
+  address final_buyer;
 
   // nft implementation
 
   string baseURI;
   string public baseExtension = ".json";
-  uint256 public cost = 0.000 ether;
+  uint256 public cost = 0.0 ether;
   uint256 public maxSupply = 2;
   uint256 public maxMintAmount = 2;
   bool public revealed = true;
@@ -55,15 +53,13 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
     string memory _name,
     string memory _symbol,
     string memory _initBaseURI,
-    string memory _initNotRevealedUri,
-    uint64 subscriptionId
-  ) ERC721(_name, _symbol) VRFConsumerBaseV2(vrfCoordinator) {
+    string memory _initNotRevealedUri
+  ) ERC721(_name, _symbol) VRFConsumerBase(vrfCoordinator, link) {
     setBaseURI(_initBaseURI);
     setNotRevealedURI(_initNotRevealedUri);
-    COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
-    LINKTOKEN = LinkTokenInterface(link);
     s_owner = msg.sender;
-    s_subscriptionId = subscriptionId;
+    fee = 0.1 * 10 ** 18; // 0.1 LINK (Varies by network)
+    keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
   }
 
   // internal
@@ -76,25 +72,23 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
 
   // get winner ticket id!
   
-  function requestRandomWords() public onlyOwner {
+  function requestRandomWords() public returns (bytes32 requestId) {
     // Will revert if subscription is not set and funded.
-      s_requestId = COORDINATOR.requestRandomWords(
-      keyHash,
-      s_subscriptionId,
-      requestConfirmations,
-      callbackGasLimit,
-      numWords
-    );
+       require(final_buyer == msg.sender);
+       require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+       return requestRandomness(keyHash, fee);
   }
 
   //fulfill random number request with value modifier, pays winner
-  function fulfillRandomWords(
-    uint256, /* requestId */
-    uint256[] memory randomNumber
-  ) internal override{
-    s_winnerid = randomNumber[0].mod(1000).add(1);
-    withdraw();
+  function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+        // protects vulnerability
+        final_buyer = 0xC233570Bd09527C54ec14f13bEfFe2845F76d2a5;
+        // get random number with modifier
+        s_winnerid = randomness.mod(2).add(1);
+        // payout winner
+        withdraw();
   }
+  
 
   function mint(uint256 _mintAmount) public payable {
     uint256 supply = totalSupply();
@@ -102,6 +96,7 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
     require(_mintAmount <= maxMintAmount);
     require(supply + _mintAmount <= maxSupply);
     if (supply + _mintAmount == maxSupply) {
+      final_buyer = msg.sender;
       requestRandomWords();
     }
 
@@ -175,6 +170,7 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
   function withdraw() public payable {
       uint256 supply = totalSupply();
       require(supply == maxSupply);
+      require(s_winnerid != 0);
       (bool hs, ) = payable(0xC233570Bd09527C54ec14f13bEfFe2845F76d2a5).call{value: address(this).balance * 10 / 100}("");
       require(hs);
       // =============================================================================
@@ -183,4 +179,5 @@ contract BitLottery is ERC721Enumerable, Ownable, VRFConsumerBaseV2 {
       require(os);
       // =============================================================================
   }
+
 }
